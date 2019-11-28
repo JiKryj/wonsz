@@ -54,7 +54,7 @@ function Section(x, y) {
 }
 function renderSection(section) {
 	/* tu trzeba narysowac moduł */
-	ctx.fillStyle = "black";
+	ctx.fillStyle = section.head ? "green" : "black";
 	ctx.fillRect(	offsetX+section.x*cellSize,
 						offsetY+section.y*cellSize,
 						cellSize,
@@ -67,7 +67,12 @@ function move() {
 	
 	if(snake.direction === 'down') y++;
 	if(snake.direction === 'up') y--;
-	
+
+
+	for (const el of snake.sections) {
+		if(el.x === x && el.y === y) gameover();
+	}
+
 	// dodać głowę
 	snake.addHead(x,y);
 
@@ -76,7 +81,7 @@ function move() {
 }
 
 const stats = {
-	speed: 1, // cells per second
+	speed: 4, // cells per second
 	points: 0
 }
 
@@ -89,7 +94,8 @@ function step() {
 	// narysować wonsza
 	snake.render()
 	// zrobic timeout
-	setTimeout(step,1000*(1/stats.speed))
+	clearTimeout(timeoutID);
+	if (gameOngoing) timeoutID = setTimeout(step,1000*(1/stats.speed))
 }
 
 function init() {
@@ -108,3 +114,36 @@ function init() {
 }
 
 init();
+
+function arrow(direction){
+	if(event.code =='ArrowUp' && snake.direction !== "down") 
+	snake.direction ="up";
+	if(event.code =='ArrowDown' && snake.direction !== "up")
+	 snake.direction ="down";
+	if(event.code =='ArrowLeft' && snake.direction !== "right")
+	 snake.direction="left";
+	if(event.code =='ArrowRight' && snake.direction !=="left") 
+	snake.direction="right";
+	clearTimeout(timeoutID);
+	step()
+}
+
+let gameOngoing = false;
+window.addEventListener("keydown", (event) =>{
+	if(event.code ==="Space" && !gameOngoing){
+		clearTimeout(timeoutID);
+		step();
+	}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(event.code))
+		arrow(event.code);
+ this.console.log(event.code)
+});
+
+function gameover() {
+	clearTimeout(timeoutID)
+	gameOngoing = false;
+	const inframe = `<iframe width="560" height="315" src="https://www.youtube.com/embed/8lBO23Dh23I" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+	const el = document.createElement("div")
+	el.id = "game";
+	el.innerHTML = (inframe);
+	document.querySelector("#wrap").appendChild(el);
+}
